@@ -13,7 +13,7 @@ Ce plugin de [`assistant-plugins`](https://aymkdn.github.io/assistant-plugins/) 
 Si vous n'avez pas installé [`assistant-plugins`](https://aymkdn.github.io/assistant-plugins/), alors il faut le faire, et sélectionner **tram-nancy** comme plugin.
 
 Si vous avez déjà installé [`assistant-plugins`](https://aymkdn.github.io/assistant-plugins/), et que vous souhaitez ajouter ce plugin, alors :
-  - Pour Windows, télécharger [`install_transport-nancy.bat`](https://github-proxy.kodono.info/?q=https://raw.githubusercontent.com/Aymkdn/assistant-tram-nancy/master/install_livebox.bat&download=install_livebox.bat) dans le répertoire `assistant-plugins`, puis l'exécuter en double-cliquant dessus.
+  - Pour Windows, télécharger [`install_tram-nancy.bat`](https://github-proxy.kodono.info/?q=https://raw.githubusercontent.com/Aymkdn/assistant-tram-nancy/master/install_livebox.bat&download=install_livebox.bat) dans le répertoire `assistant-plugins`, puis l'exécuter en double-cliquant dessus.
   - Pour Linux/MacOS, ouvrir une console dans le répertoire `assistant-plugins` et taper :
   `npm install assistant-tram-nancy@latest --save --loglevel error && npm run-script postinstall`
 
@@ -25,6 +25,16 @@ Si vous n'avez pas de compte Navitia il faut vous en créer un [ici](https://nav
 Dans la section concernant le plugin `tram-nancy`, on trouve le paramètre ci-dessous.
 
 ### Paramètre `tokenNavitia`
+
+Obligatoire,
+
+C'est le token de l'API Navitia, pour le récupérer il vous faut un compte sur Navitia (Gratuit).
+
+### Paramètre `googleDistanceKey`
+
+Obligatoire,
+
+C'est le token de l'API Google maps.
 
 Obligatoire,
 

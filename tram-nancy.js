@@ -41,13 +41,12 @@ AssistantTemplate.prototype.init = async function(plugins) {
 		return Promise.reject("[assistant-tram-nancy] Erreur : Google distance API Key manquante !");
 	}else{
 		distance.apiKey = _this.config.googleDistanceKey;
-
 	}
 	// si une configuration est requise (en reprenant l'exemple de "key") :
 	if (!_this.config.tokenNavitia) return Promise.reject("[assistant-tram-nancy] Erreur : Token API Navitia manquant !");
 	if ((_this.config.location.lat === 0 || _this.config.location.lng === 0 ) && _this.config.mode === "timeDepart") return Promise.reject("[assistant-tram-nancy] Erreur : Mode timeDepart activer sans localisation !");
-
-	if (_this.config.location.lat && _this.config.location.lng && _this.config.arretFav){
+	//Calcule du temps de trajet en seconde vers l'arret favori (S'exectue seulement si jamais configurer)
+	if (_this.config.location.lat && _this.config.location.lng && _this.config.arretFav && !_this.config.travelTime){
 		try{
 			const responseNavitia  = await request({
 				url :"https://api.navitia.io/v1/coverage/fr-ne/stop_areas/"+_this.config.arretFav,
@@ -68,7 +67,9 @@ AssistantTemplate.prototype.init = async function(plugins) {
 				},
 				function(err, data) {
 					if (err) return Promise.reject("[assistant-tram-nancy] Erreur : "+err.message);
-					_this.config.travelTime = Math.round(data.durationValue/60);
+					_this.config.travelTime = Math.round(data.durationValue);
+					_this.plugins.assistant.saveConfig('tram-nancy', _this.config);
+
 
 				}
 			);
@@ -77,7 +78,6 @@ AssistantTemplate.prototype.init = async function(plugins) {
 			return Promise.reject("[assistant-tram-nancy] Erreur : "+err.message);
 		}
 	}
-	this.plugins.assistant.saveConfig('assistant-tram-nancy', this.config);
 	return Promise.resolve(this);
 };
 
@@ -93,8 +93,6 @@ AssistantTemplate.prototype.action = async function(com) {
 	commande = JSON.parse(com);
 	const startUrlNavitia = "https://api.navitia.io/v1/coverage/fr-ne/stop_areas/";
 	var travelTime;
-
-	//Log debut commande avec arguments
 
 	console.log("[assistant-tram-nancy] Recherche pour : - Arret : "+commande.arret+" vers "+commande.direction+" mode : "+_this.config.mode+" timeMode : "+_this.config.modeTime);
 
@@ -167,7 +165,7 @@ AssistantTemplate.prototype.action = async function(com) {
 			if(_this.config.mode === "timeAt" && _this.config.modeTime === 	"timeDepart"){
 				message += "Vous pouvez prendre ";
 			}
-			message += "le tram à "+getArretById(commande.arretId).name+" vers "+commande.direction" ";
+			message += "le tram à "+getArretById(commande.arretId).name+" vers "+commande.direction+" ";
 
 			if(_this.config.modeTime === "timeAt" && _this.config.mode === "timeDepart"){
 				message += "en partant à ";
