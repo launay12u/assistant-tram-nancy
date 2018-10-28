@@ -1,18 +1,18 @@
 const request = require('request-promise-native'); // si vous souhaitez faire des requêtes HTTP
-const arrets = require('./arrets.js').arrets;
+const arrets = require('./arrets.json');
 const moment = require('moment');
 const distance = require('google-distance');
 
 function getArretByName(name) {
 	return arrets.filter(
-		function(data){return data.name === name}
-	);
+		function(data){return data.name === String(name)}
+	)[Ø];
 }
 
 function getArretById(id) {
 	return arrets.filter(
-		function(data){return data.id === id}
-	);
+		function(data){return data.id === String(id)}
+	)[0];
 }
 
 
@@ -35,37 +35,45 @@ var AssistantTemplate = function(configuration) {
  * @return {Promise}
  */
 AssistantTemplate.prototype.init = async function(plugins) {
-  this.plugins = plugins;
-  const _this = this;
-  // si une configuration est requise (en reprenant l'exemple de "key") :
+	this.plugins = plugins;
+	const _this = this;
+	if(!_this.config.googleDistanceKey){
+		return Promise.reject("[assistant-tram-nancy] Erreur : Google distance API Key manquante !");
+	}else{
+		distance.apiKey = _this.config.googleDistanceKey;
+
+	}
+	// si une configuration est requise (en reprenant l'exemple de "key") :
 	if (!_this.config.tokenNavitia) return Promise.reject("[assistant-tram-nancy] Erreur : Token API Navitia manquant !");
-	if ((!_this.config.location.lat || _this.config.location.lng ) && _this.config.mode === "timeDepart") return Promise.reject("[assistant-tram-nancy] Erreur : Mode timeDepart activer sans localisation !");
+	if ((_this.config.location.lat === 0 || _this.config.location.lng === 0 ) && _this.config.mode === "timeDepart") return Promise.reject("[assistant-tram-nancy] Erreur : Mode timeDepart activer sans localisation !");
 
 	if (_this.config.location.lat && _this.config.location.lng && _this.config.arretFav){
 		try{
 			const responseNavitia  = await request({
 				url :"https://api.navitia.io/v1/coverage/fr-ne/stop_areas/"+_this.config.arretFav,
 				method :"GET",
-				header :{
+				headers :{
 					"Authorization": _this.config.tokenNavitia
 				}
 			});
+			var responseNavitiaJson = JSON.parse(responseNavitia);
+			const arretLat = responseNavitiaJson.stop_areas[0].coord.lat;
+			const arretLng = responseNavitiaJson.stop_areas[0].coord.lon;
 
-			const arretLat = responseNavitia.stop_areas[0].coord.lat;
-			const arretLng = responseNavitia.stop_areas[0].coord.lon;
-
-			try{
-			const responseGoogle = await distance.get({
+			distance.get(
+				{
 				origin: _this.config.location.lat + "," + _this.config.location.lng,
 				destination:arretLat+","+arretLng,
 				mode: 'walking'
-			});
-			_this.config.travelTime = Math.round(responseGoogle.durationValue/60)
+				},
+				function(err, data) {
+					if (err) return Promise.reject("[assistant-tram-nancy] Erreur : "+err.message);
+					_this.config.travelTime = Math.round(data.durationValue/60);
 
-			}catch (err) {
-				return Promise.reject("[assistant-tram-nancy] Erreur : "+err.message);
-			}
+				}
+			);
 		}catch (err) {
+			console.log(err);
 			return Promise.reject("[assistant-tram-nancy] Erreur : "+err.message);
 		}
 	}
@@ -81,13 +89,14 @@ AssistantTemplate.prototype.init = async function(plugins) {
  */
 AssistantTemplate.prototype.action = async function(com) {
 	const _this=this;
+
+	commande = JSON.parse(com);
 	const startUrlNavitia = "https://api.navitia.io/v1/coverage/fr-ne/stop_areas/";
-	let travelTime;
-	let commande = '"'+com.replace(/'/g,'\\"').replace(/, /g,",")+'"';
-	commande = JSON.parse(commande);
+	var travelTime;
 
 	//Log debut commande avec arguments
-	console.log("[assistant-tram-nancy] Recherche pour : - Arret : "+commande.arret+" vers "+commande.direction);
+
+	console.log("[assistant-tram-nancy] Recherche pour : - Arret : "+commande.arret+" vers "+commande.direction+" mode : "+_this.config.mode+" timeMode : "+_this.config.modeTime);
 
 	if (typeof commande==="string") commande = JSON.parse(commande);
 
@@ -100,20 +109,17 @@ AssistantTemplate.prototype.action = async function(com) {
 	else if(commande.arret === "favori" && commande.direction === "favori"){
 		commande.arretId = _this.config.arretFav;
 		commande.direction = _this.config.directionFav;
-		commande.arret = getArretById(commande.arretId).name;
-
+		commande.arret = getArretById(commande.arretId);
 		travelTime = _this.config.travelTime;
-
 	}
 	//Si commande complète
 	else {
-		//Traduire l'arret en id d'arret => arrets.js
 		commande.arretId = getArretByName(commande.arret).id;
 		try{
 			const  responseNavitia = await request({
 				url :"https://api.navitia.io/v1/coverage/fr-ne/stop_areas/"+commande.arretId,
 				method :"GET",
-				header :{
+				headers :{
 					"Authorization": _this.config.tokenNavitia
 				}
 			});
@@ -137,54 +143,58 @@ AssistantTemplate.prototype.action = async function(com) {
 		}
 	}
 	const requeteTime = _this.config.mode === "timeDepart" ? moment().add(travelTime,'seconds').format('YYYYMMDDTHHmmss') : moment().format('YYYYMMDDTHHmmss');
-	const endUrlNavitia = "/departures?from_date="+requeteTime;
+	const endUrlNavitia = "/stop_schedules?from_date="+requeteTime+"&items_per_schedule=3";
 	const urlNavitia = startUrlNavitia+commande.arretId+endUrlNavitia;
 	try{
-		const response = await request({
+		var response = await request({
 			url : urlNavitia,
 			method :"GET",
-			header :{
+			headers :{
 				"Authorization": _this.config.tokenNavitia
 			}
 		});
+		response = JSON.parse(response);
 		const separator = [", "," ou ",""];
-		const count = response.departures > 3 ? 3 : response.departures;
-		if (count === 0 ){
+		if (!response.stop_schedules ){
 			if (_this.plugins.notifier) _this.plugins.notifier.action("Excusez-moi mais je n'ai rien trouvé.");
 			return Promise.reject("[assistant-tram-nancy] Reponse : Aucun resultat ");
 		}else{
-			let message = "";
+			//recup le bon stop_schedules
+			var stop_schedule = response.stop_schedules.filter(function (entry) {
+				return entry.route.direction.name.split(" (")[0] === commande.direction;
+			})[0];
+			var message = "";
 			if(_this.config.mode === "timeAt" && _this.config.modeTime === 	"timeDepart"){
 				message += "Vous pouvez prendre ";
 			}
-			message += "le tram à "+getArretById(commande.arretId).name+" vers "+response.departures[0].display_informations.headsign+" ";
+			message += "le tram à "+getArretById(commande.arretId).name+" vers "+commande.direction" ";
 
-			if(_this.config.mode === "timeAt" && _this.config.modeTime === 	"timeDepart"){
+			if(_this.config.modeTime === "timeAt" && _this.config.mode === "timeDepart"){
 				message += "en partant à ";
-			}else if(_this.config.mode === "timeAt" && _this.config.modeTime === 	"timeArret"){
+			}else if(_this.config.modeTime === "timeAt" && _this.config.mode === "timeArret"){
 				message+= "arrive à ";
 			}else{
 				message+="est dans "
 			}
-			for (let i = 0; i > count-1;i++){
-				const stopTimeISO = response.departures[i].stop_date_time.arrival_date_time;
+			stop_schedule.date_times.forEach((element,i) => {
+				const stopTimeISO = element.date_time;
 				const stopTimeString = stopTimeISO.slice(-6);
 				const stopTime = {
 					"heure" : stopTimeString.slice(0,2),
 					"minute" : stopTimeString.slice(2,4)
 				};
-				if(_this.config.mode === "timeAt"){
+				if(_this.config.modeTime === "timeAt"){
 						message += stopTime.heure+" heure "+stopTime.minute+separator[i];
 				}else{
 					const timeString = requeteTime.slice(-6);
-					const delay = stopTimeString-timeString;
+					const delay = Math.round((stopTimeString-timeString)/60);
 					message += delay+" minutes"+separator[i];
 
 				}
-			}
+			});
 		}
 		console.log('[assistant-tram-nancy] Message : '+message);
-		if (_this.plugins.notifier) return _this.plugins.notifier.action(speak)
+		if (_this.plugins.notifier) return _this.plugins.notifier.action(message)
 
 	}catch (err) {
 		return Promise.reject("[assistant-tram-nancy] Erreur : "+err.message);
