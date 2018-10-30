@@ -67,14 +67,13 @@ L'id de votre arret sur l'API Navitia (Liste dans le fichier [arrets.js](./arret
 
 ### Paramètre `directionFav`
 
-Obligatoire pour l'applet rapide ('À quelle heure est le prochain tram ?'), sinon obligation d'ajouter la direction
-
+Obligatoire,
 
 Votre direction favorite  : "Essey Mouzimpré" ou "Vandoeuvre CHU Brabois"
 
 ### Paramètre `travelTime`
 
-Obligatoire si `timeDepart` est choisit
+Obligatoire si `timeDepart` est choisit,
 
 Votre temps de trajet à pied jusqu'à l'arret
 
@@ -109,7 +108,7 @@ Ensuite dans la sortie pushbullet :
 
 Pour le second applet qui va servir pour les requêtes vers un direction spécifique (un arret ou une direction):
 * Dans l'entrée google assitant choissisez **Say a phrase with a text ingredient**
-* Choisissez la ou les phrases pour declancher la commande (Ex: "Quand passe le prochain tram vers $ ?")
+* Choisissez la ou les phrases pour declancher la commande (Ex: "Quand passe le prochain tram vers $ ?"), le `$` sert à ajouter une variable, ici la direction demandé.
 * Choisissez une phrase de réponse (Ex: "Je regarde")
 * Mettez en Français
 

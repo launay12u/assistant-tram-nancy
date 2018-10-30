@@ -1,6 +1,6 @@
 {
   "name": "assistant-tram-nancy",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Assistant plugin pour les horaires du tram à Nancy",
   "author": "naay",
   "main": "tram-nancy.js",

@@ -37,6 +37,8 @@ AssistantTemplate.prototype.init = async function(plugins) {
 	this.plugins = plugins;
 	const _this = this;
 	// si une configuration est requise (en reprenant l'exemple de "key") :
+	if (!_this.config.directionFav) return Promise.reject("[assistant-tram-nancy] Erreur : Direction favorite manquante !");
+	if (!_this.config.arretFav) return Promise.reject("[assistant-tram-nancy] Erreur : Arret favori manquant !");
 	if (!_this.config.tokenNavitia) return Promise.reject("[assistant-tram-nancy] Erreur : Token API Navitia manquant !");
 	if ( !_this.config.travelTime && _this.config.mode === "timeDepart") return Promise.reject("[assistant-tram-nancy] Erreur : Mode timeDepart activer sans localisation !");
 	return Promise.resolve(this);
