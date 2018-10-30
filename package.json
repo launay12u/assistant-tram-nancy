@@ -7,7 +7,6 @@
   "repository": "https://github.com/launay12u/assistant-tram-nancy",
   "license": "MIT",
   "dependencies": {
-    "google-distance": "^1.0.1",
     "moment": "^2.22.2"
   }
 }

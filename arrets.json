@@ -13,7 +13,7 @@
 	},
 	{
 		"id":"stop_area:ONY:SA:CTP5",
-		"name":"Saint-André"
+		"name":"Saint André"
 	},
 	{
 		"id":"stop_area:ONY:SA:CTP6",
@@ -85,11 +85,11 @@
 	},
 	{
 		"id":"stop_area:ONY:SA:CTP23",
-		"name":"Gérard Barrois - Stade Marcel Picot"
+		"name":"Gérard Barrois Stade Marcel Picot"
 	},
 	{
 		"id":"stop_area:ONY:SA:CTP24",
-		"name":"Saint-Livier"
+		"name":"Saint Livier"
 	},
 	{
 		"id":"stop_area:ONY:SA:CTP25",
