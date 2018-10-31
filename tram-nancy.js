@@ -36,9 +36,6 @@ var AssistantTemplate = function(configuration) {
 AssistantTemplate.prototype.init = async function(plugins) {
 	this.plugins = plugins;
 	const _this = this;
-	// si une configuration est requise (en reprenant l'exemple de "key") :
-	if (!_this.config.directionFav) return Promise.reject("[assistant-tram-nancy] Erreur : Direction favorite manquante !");
-	if (!_this.config.arretFav) return Promise.reject("[assistant-tram-nancy] Erreur : Arret favori manquant !");
 	if (!_this.config.tokenNavitia) return Promise.reject("[assistant-tram-nancy] Erreur : Token API Navitia manquant !");
 	if ( !_this.config.travelTime && _this.config.mode === "timeDepart") return Promise.reject("[assistant-tram-nancy] Erreur : Mode timeDepart activer sans localisation !");
 	return Promise.resolve(this);
@@ -65,18 +62,13 @@ AssistantTemplate.prototype.action = async function(com) {
 	// Sinon récupère la direction dans la commande vocale
 	else{
 		commande.direction = JSON.parse(com).direction;
-		// Si c'est un arret
 		var arret = getArretByName(commande.direction);
+		// Si c'est un arret
 		if( arret !== undefined){
 			// Si le numéro d'arret et plus petit que l'arret fav c'est vers le CHU
 			var numero_arret_fav = _this.config.arretFav.split('stop_area:ONY:SA:CTP')[1];
 			var numero_arret_commande = arret.id.split('stop_area:ONY:SA:CTP')[1];
-			if(parseInt(numero_arret_commande)< parseInt(numero_arret_fav)){
-				commande.direction = "Vandoeuvre CHU Brabois";
-			}
-			else{
-				commande.direction = "Essey Mouzimpré";
-			}
+			commande.direction = (parseInt(numero_arret_commande)< parseInt(numero_arret_fav)) ? "Vandoeuvre CHU Brabois" : "Essey Mouzimpré";
 		}
 		//Sinon si pas direction de base erreur
 		else if(commande.direction !== "Essey Mouzimpré" && commande.direction !== "Vandoeuvre CHU Brabois"){
