@@ -1,0 +1,8 @@
+{
+  "tokenNavitia": "MON_TOKEN_NATIVIA",
+  "arretFav": "ID depuis arrets.json (exemple: stop_area:ONY:SA:CTP18)",
+  "directionFav": "Essey Mouzimpré ou Vandoeuvre CHU Brabois",
+  "mode": "timeDepart",
+  "modeTime": "timeAt",
+  "travelTime": 5,
+}
