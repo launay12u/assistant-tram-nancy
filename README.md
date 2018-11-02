@@ -113,6 +113,6 @@ Ensuite dans la sortie Pushbullet :
 Ensuite dans la sortie Pushbullet :
 * Choisissez **Push a note**
 * Dans **title** mettre `Assistant`
-* Dans **message** mettre `tram-nancy_{"direction":"{{TextField}}"}` (*{{TextField}}* est l'ingrédient généré par IFTTT)
+* Dans **message** mettre `tram-nancy_{"direction":"\{\{TextField\}\}"}` (*\{\{TextField\}\}* est l'ingrédient généré par IFTTT)
 
 Une question, un bug ou une demande ? [Merci de me prévenir](https://github.com/launay12u/assistant-tram-nancy/issues) !
